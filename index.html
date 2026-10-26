@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111111" />
+  <title>Netflix | Content Strategy Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=3" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { ink: '#111111', panel: '#191919', muted: '#9b9b9b', netflix: '#E50914' },
+          fontFamily: { sans: ['DM Sans', 'sans-serif'], display: ['Space Grotesk', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="min-h-screen bg-ink text-white antialiased">
+  <div class="dashboard-shell">
+    <header class="topbar flex items-center justify-between border-b">
+      <a class="brand" href="#overview" aria-label="Netflix Content Strategy dashboard">
+        <span class="brand-mark">N</span>
+        <span class="brand-divider"></span>
+        <span class="brand-copy"><strong>Netflix Movies & TV Shows: Content Analysis</strong><small>EXECUTIVE DASHBOARD</small></span>
+      </a>
+      <div class="topbar-meta">
+        <span class="live-dot"></span>
+        <span id="dataset-status" role="status">Memuat dataset</span>
+        <span class="meta-divider"></span>
+        <span id="last-updated">NETFLIX CATALOG</span>
+      </div>
+    </header>
+
+    <main id="overview" class="dashboard-layout">
+      <aside class="filters-sidebar">
+        <section class="filters rounded-md border" aria-label="Filter dashboard">
+          <div class="filter-heading"><span class="eyebrow">FILTERS</span><button id="reset-filters" class="reset-button" type="button">Reset</button></div>
+          <div class="filter-controls">
+            <label class="select-filter" for="type-filter"><span>CONTENT TYPE</span>
+              <select id="type-filter"><option value="All">All titles</option><option value="Movie">Movies</option><option value="TV Show">TV shows</option></select>
+            </label>
+            <label class="select-filter genre-filter" for="genre-filter"><span>GENRE</span>
+              <select id="genre-filter"><option value="All">All genres</option></select>
+            </label>
+            <div class="year-filter">
+              <div class="year-label-row"><span>RELEASE YEAR</span><strong id="year-range-label">—</strong></div>
+              <div class="range-wrap" id="range-wrap">
+                <div class="range-track"><span id="range-fill"></span></div>
+                <input id="year-min" aria-label="Minimum release year" type="range" min="1900" max="2025" value="1900" />
+                <input id="year-max" aria-label="Maximum release year" type="range" min="1900" max="2025" value="2025" />
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="dashboard-content">
+        <div id="error-banner" class="error-banner" role="alert" hidden>
+          <strong>Dataset tidak dapat dimuat.</strong>
+          <span id="error-message">Pastikan netflix_cleaned.csv berada di folder yang sama, lalu buka dashboard melalui server lokal.</span>
+        </div>
+        <section class="kpi-grid grid gap-2" aria-label="Ringkasan katalog">
+          <article class="kpi-card kpi-primary rounded-md border transition duration-200"><div class="kpi-top"><span class="kpi-label">TOTAL TITLES</span></div><strong class="kpi-value" id="kpi-total">—</strong><span class="kpi-note" id="kpi-total-note">Titles in current view</span></article>
+          <article class="kpi-card rounded-md border transition duration-200"><div class="kpi-top"><span class="kpi-label">MOVIES</span></div><strong class="kpi-value" id="kpi-movies">—</strong><span class="kpi-note" id="kpi-movies-share">Feature films</span></article>
+          <article class="kpi-card rounded-md border transition duration-200"><div class="kpi-top"><span class="kpi-label">TV SHOWS</span></div><strong class="kpi-value" id="kpi-shows">—</strong><span class="kpi-note" id="kpi-shows-share">Series & specials</span></article>
+          <article class="kpi-card rounded-md border transition duration-200"><div class="kpi-top"><span class="kpi-label">TOP RELEASE YEAR</span></div><strong class="kpi-value" id="kpi-year">—</strong><span class="kpi-note" id="kpi-year-note">Most represented year</span></article>
+          <article class="kpi-card rounded-md border transition duration-200"><div class="kpi-top"><span class="kpi-label">LEADING GENRE</span></div><strong class="kpi-value kpi-genre-value" id="kpi-genre">—</strong><span class="kpi-note" id="kpi-genre-note">Most represented category</span></article>
+        </section>
+
+        <section id="chart-panel" class="chart-grid" aria-label="Dashboard analytics">
+          <article class="chart-panel type-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">PORTFOLIO MIX</p><h2>Content type</h2></div></div>
+            <div class="type-chart-layout"><div class="chart-canvas type-canvas"><canvas id="type-chart" aria-label="Distribusi movie dan TV show"></canvas><div class="donut-center"><strong id="donut-total">—</strong><span>TITLES</span></div></div><div id="type-legend" class="type-legend"></div></div>
+          </article>
+          <article class="chart-panel trend-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">ACQUISITION PACE</p><h2>Content added over time</h2></div></div>
+            <div class="chart-canvas trend-canvas"><canvas id="trend-chart" aria-label="Jumlah konten berdasarkan tahun ditambahkan"></canvas></div>
+          </article>
+          <article class="chart-panel rating-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">AUDIENCE</p><h2>Rating breakdown</h2></div></div>
+            <div class="chart-canvas rating-canvas"><canvas id="rating-chart" aria-label="Distribusi rating konten"></canvas></div>
+          </article>
+          <article class="chart-panel genre-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">CATEGORY LEADERS</p><h2>Top 10 genres</h2></div></div>
+            <div class="chart-canvas genre-canvas"><canvas id="genre-chart" aria-label="Sepuluh genre terpopuler"></canvas></div>
+          </article>
+          <article class="chart-panel country-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">PRODUCTION FOOTPRINT</p><h2>Top countries</h2></div></div>
+            <div class="chart-canvas country-canvas"><canvas id="country-chart" aria-label="Sepuluh negara produsen teratas"></canvas></div>
+          </article>
+          <article class="chart-panel duration-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">FORMAT PROFILE</p><h2>Duration analysis</h2></div></div>
+            <div class="duration-charts">
+              <div class="duration-chart-block"><div class="duration-title"><strong>Movies</strong><span>MIN</span></div><div class="chart-canvas duration-canvas"><canvas id="movie-duration-chart" aria-label="Distribusi durasi movie dalam menit"></canvas></div></div>
+              <div class="duration-chart-block"><div class="duration-title"><strong>TV shows</strong><span>SEASONS</span></div><div class="chart-canvas duration-canvas"><canvas id="show-duration-chart" aria-label="Distribusi jumlah season TV show"></canvas></div></div>
+            </div>
+          </article>
+          <article class="chart-panel director-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">CREATIVE TALENT</p><h2>Top directors</h2></div></div>
+            <div class="chart-canvas director-canvas"><canvas id="director-chart" aria-label="Sepuluh sutradara teratas"></canvas></div>
+          </article>
+          <article class="chart-panel actor-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">CAST SPOTLIGHT</p><h2>Top cast</h2></div></div>
+            <div class="chart-canvas actor-canvas"><canvas id="actor-chart" aria-label="Sepuluh pemeran teratas"></canvas></div>
+          </article>
+          <section class="catalog-section chart-panel rounded-md border" aria-label="Katalog judul">
+            <div class="catalog-heading"><div><p class="eyebrow">TITLE REGISTER</p><h2>Recent titles</h2></div><label class="search-box" for="table-search"><span class="search-symbol" aria-hidden="true"></span><input id="table-search" type="search" placeholder="Search catalog..." autocomplete="off" /><kbd>/</kbd></label></div>
+            <div class="table-wrap"><table><thead><tr><th>TITLE</th><th>TYPE</th><th>DIRECTOR</th><th>COUNTRY</th><th>YEAR</th><th>RATING</th></tr></thead><tbody id="catalog-body"><tr><td class="empty-row" colspan="6">Loading catalog...</td></tr></tbody></table></div>
+            <div class="table-footer"><span id="table-count">—</span><div class="pagination"><button id="prev-page" type="button" aria-label="Previous page" disabled>Previous</button><span id="page-indicator">1 / 1</span><button id="next-page" type="button" aria-label="Next page" disabled>Next</button></div></div>
+          </section>
+          <article class="chart-panel insights-panel rounded-md border">
+            <div class="panel-heading"><div><p class="eyebrow">PORTFOLIO SIGNALS</p><h2>Key Insights</h2></div></div>
+            <div class="insights-list">
+              <div class="insight-row"><span class="insight-number">01</span><div class="insight-copy"><span class="insight-label">LEADING GENRE</span><strong id="insight-genre">—</strong><small id="insight-genre-detail">—</small></div></div>
+              <div class="insight-row"><span class="insight-number">02</span><div class="insight-copy"><span class="insight-label">CONTENT MIX</span><strong id="insight-mix">—</strong><small id="insight-mix-detail">—</small></div></div>
+              <div class="insight-row"><span class="insight-number">03</span><div class="insight-copy"><span class="insight-label">TOP COUNTRY</span><strong id="insight-country">—</strong><small id="insight-country-detail">—</small></div></div>
+            </div>
+          </article>
+        </section>
+      </section>
+    </main>
+    <footer class="copyright-footer">
+      <span>&copy; 2026 Mikhail Jonathan. All rights reserved.</span>
+      <span>Netflix is a trademark of Netflix, Inc. This is an independent portfolio project.</span>
+    </footer>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="script.js?v=5"></script>
+</body>
+</html>
